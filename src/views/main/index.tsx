@@ -27,7 +27,7 @@ class Main extends React.Component<Props, State> {
         this.state = {
             temperature: 0,
             city: '',
-            weather: 'Clear',
+            weather: 'home',
             minTemp: 0,
             maxTemp: 0,
             wind: 0,
@@ -67,15 +67,13 @@ class Main extends React.Component<Props, State> {
         const weatherApiCitiesJsonUrl = 'city.list.model.json';
         axios.get(citiesJsonUrl).then(response => {
             axios.get(weatherApiCitiesJsonUrl).then(res => {
-                console.log(res);
                 response.data.forEach((country: Country) => {
                     if (res.data.some((apiCity: any) => apiCity.capital === country.capital)) {
-                        this.setState({cities: res.data})
+                        this.setState({ cities: res.data })
                     }
                 });
             });
         });
-        console.log(this.state.cities);
         return this.state.cities;
     }
 
@@ -142,22 +140,36 @@ class Main extends React.Component<Props, State> {
 
     render() {
         return (
-            <div>
-                <span>Select your city: </span>
-                <select onChange={(e: any) => this.selectCity(e)} value={this.state.city}>
-                    {this.showCities()}
-                </select>
-                <div className="home">
-                    <p>{this.state.weather}</p>
-                    <p>{this.state.temperature}C</p>
-                    <p>{this.state.minTemp}C</p>
-                    <p>{this.state.maxTemp}C</p>
-                    <p>{this.state.humidity}%</p>
-                    <p>{this.state.wind} m/s</p>
-                    <p>{this.state.sunrise}</p>
-                    <p>{this.state.sunset}</p>
+            <div className="hero">
+                <div className="select">
+                    <span>Select your city: </span>
+                    <select onChange={(e: any) => this.selectCity(e)} value={this.state.city}>
+                        {this.showCities()}
+                    </select>
                 </div>
-            </div>
+
+                <div className={this.state.weather}>
+                    {this.state.city === "" && <div className="firstPage">What's the weather in your city?</div>}
+                    {this.state.city !== "" && <div>
+                        <div className="city"><img src={require("./assets/placeholder.png")} alt=""></img>{this.state.city}</div>
+                        <div className="weather">{this.state.weather}</div>
+                        <div className="temperature">{this.state.temperature}C</div>
+                        <div className="minMaxTemp">{this.state.minTemp}C/{this.state.maxTemp}C</div>
+                        <div className="wind">
+                            <p id="wind"><img src={require("./assets/wind.png")} alt=""></img>Wind</p>
+                            <p id="windSpeed">{this.state.wind} m/s</p>
+                        </div>
+                        <div className="humidity">
+                            <p id="humidity"><img src={require("./assets/humidity.png")} alt=""></img>Humidity</p>
+                            <p id="hum">{this.state.humidity}%</p>
+                        </div>
+                        <div className="sun">
+                            <p id="sun"><img src={require("./assets/sun.png")} alt=""></img>Sunrise/Sunset</p>
+                            <p id="sunTime">{this.state.sunrise}/{this.state.sunset}</p>
+                        </div>
+                    </div>}
+                </div>
+            </div >
         );
     }
 }
