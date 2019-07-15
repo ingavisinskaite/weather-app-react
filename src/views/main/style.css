@@ -1,0 +1,57 @@
+.home {
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 20px;
+    height: 600px;
+    padding-top: 60px;
+    background-image: url('./assets/home.jfif');
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.rainy {
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 20px;
+    height: 600px;
+    padding-top: 60px;
+    background-image: url('./assets/rainy.jfif');
+}
+
+.sunny {
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 20px;
+    height: 600px;
+    padding-top: 60px;
+    background-image: url('./assets/sunny.jpeg');
+}
+
+.snowy {
+    background-image: url('./assets/snowy.jpg');
+}
+
+.cloudy {
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 20px;
+    height: 600px;
+    padding-top: 60px;
+    background-image: url('./assets/cloudy.jpg');
+}
+
+.fog {
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 20px;
+    height: 600px;
+    padding-top: 60px;
+    background-image: url('./assets/foggy.jfif');
+}
+.mist {
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 20px;
+    height: 600px;
+    padding-top: 60px;
+    background-image: url('./assets/mist.jfif');
+}
