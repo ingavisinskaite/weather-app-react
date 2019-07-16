@@ -1,7 +1,8 @@
 import React from 'react';
 import './style.css';
 import axios from 'axios';
-import { Country } from '../../models/country.model';
+import {Country}  from '../../models/country.model';
+import moment from 'moment-timezone';
 
 interface State {
     cities: Array<Country>;
@@ -14,6 +15,7 @@ interface State {
     humidity: number;
     sunrise: string;
     sunset: string;
+    windDirec: string;
 }
 
 interface Props { }
@@ -32,14 +34,16 @@ class Main extends React.Component<Props, State> {
             maxTemp: 0,
             wind: 0,
             humidity: 0,
-            sunrise: '00:00',
-            sunset: '00:00',
+            sunrise: '',
+            sunset: '',
             cities: [],
+            windDirec: ''
         };
 
     }
 
     componentDidMount() {
+        this.loadTimezones();
         this.loadCities();
     }
 
@@ -69,7 +73,7 @@ class Main extends React.Component<Props, State> {
             axios.get(weatherApiCitiesJsonUrl).then(res => {
                 response.data.forEach((country: Country) => {
                     if (res.data.some((apiCity: any) => apiCity.capital === country.capital)) {
-                        this.setState({ cities: res.data })
+                        this.setState({ cities: response.data })
                     }
                 });
             });
@@ -77,6 +81,14 @@ class Main extends React.Component<Props, State> {
         return this.state.cities;
     }
 
+    loadTimezones() {
+        const timeZoneJsonUrl = 'timezones.json';
+        axios.get(timeZoneJsonUrl).then(response => {
+          response.data.forEach((x: any) => {
+            moment.tz.add(x);
+          });
+        });
+      }
 
     getTemp(city: string) {
         this.getConfig(city).then(response => {
@@ -92,13 +104,15 @@ class Main extends React.Component<Props, State> {
 
     getMinTemp(city: string) {
         this.getConfig(city).then(response => {
-            this.setState({ minTemp: response.data.main.temp_min })
+            let minTemp = Math.round(response.data.main.temp_min);
+            this.setState({ minTemp: minTemp})
         })
     }
 
     getMaxTemp(city: string) {
         this.getConfig(city).then(response => {
-            this.setState({ maxTemp: response.data.main.temp_max })
+            let maxTemp = Math.round(response.data.main.temp_max)
+            this.setState({ maxTemp: maxTemp })
         })
     }
 
@@ -116,15 +130,55 @@ class Main extends React.Component<Props, State> {
 
     getSunrise(city: string) {
         this.getConfig(city).then(response => {
-            this.setState({ sunrise: response.data.sys.sunrise })
+            let sunrise = this.getTimeStringFromMiliseconds(response.data.sys.sunrise, city);
+            this.setState({ sunrise: sunrise });
         })
     }
 
     getSunset(city: string) {
         this.getConfig(city).then(response => {
-            this.setState({ sunset: response.data.sys.sunset })
+            let sunset = this.getTimeStringFromMiliseconds(response.data.sys.sunset, city)
+            this.setState({ sunset: sunset })
         })
     }
+
+    getTimeStringFromMiliseconds(x: number, city: string) {
+        const country = this.state.cities.find((y: any) => y.capital === city);
+        city = city.split(' ').join('_');
+        let formattedContinent = '';
+        if(country) {
+            formattedContinent = this.getFormattedContinentForMoment(country.continentName);
+        }
+        const localTime = moment.unix(x).tz(`${formattedContinent}/${city}`);
+        const hours = localTime.hours();
+        const mins = localTime.minutes();
+        const hoursString = `${hours < 10 ? '0' : ''}${hours}`; // add 0 if hrs < 10
+        const minsString = `${mins < 10 ? '0' : ''}${mins}`;
+        return `${hoursString}:${minsString}`;
+      }
+    
+      getFormattedContinentForMoment(continent: string) {
+        if (continent.indexOf('America') > -1) {
+          return 'America';
+        }
+        return continent;
+      }
+
+      
+  getWindDirection(event: string) {
+    this.getConfig(event)
+      .then(response => {
+        if (response.data.wind.deg > 348.75 || (response.data.wind.deg < 78.75)) {
+          this.setState({windDirec: 'Direction: North'})
+        } else if (response.data.wind.deg < 168.75) {
+          this.setState({windDirec: 'Direction: East'})
+        } else if (response.data.wind.deg < 258.75) {
+          this.setState({windDirec: 'Direction: South'})
+        } else {
+          this.setState({windDirec: 'Direction: West'})
+        }
+      });
+  }
 
     selectCity(event: any) {
         this.setState({ city: event.target.value });
@@ -136,6 +190,7 @@ class Main extends React.Component<Props, State> {
         this.getWind(event.target.value);
         this.getSunrise(event.target.value);
         this.getSunset(event.target.value);
+        this.getWindDirection(event.target.value)
     }
 
     render() {
@@ -153,11 +208,12 @@ class Main extends React.Component<Props, State> {
                     {this.state.city !== "" && <div>
                         <div className="city"><img src={require("./assets/placeholder.png")} alt=""></img>{this.state.city}</div>
                         <div className="weather">{this.state.weather}</div>
-                        <div className="temperature">{this.state.temperature}C</div>
-                        <div className="minMaxTemp">{this.state.minTemp}C/{this.state.maxTemp}C</div>
+                        <div className="temperature">{this.state.temperature}°C</div>
+                        <div className="minMaxTemp">{this.state.minTemp}°C / {this.state.maxTemp}°C</div>
                         <div className="wind">
                             <p id="wind"><img src={require("./assets/wind.png")} alt=""></img>Wind</p>
                             <p id="windSpeed">{this.state.wind} m/s</p>
+                            <p id="windDirec">{this.state.windDirec}</p>
                         </div>
                         <div className="humidity">
                             <p id="humidity"><img src={require("./assets/humidity.png")} alt=""></img>Humidity</p>
